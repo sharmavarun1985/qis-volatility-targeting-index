@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 
 from config import (
@@ -23,8 +24,16 @@ from index_calculator import (
     calculate_index_level,
 )
 
+from performance import build_performance_summary
+
 
 def main():
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_folder = os.path.join(project_root, "outputs")
+    os.makedirs(output_folder, exist_ok=True)
+
+    print("Output folder:", output_folder)
+
     all_tickers = list(set(TICKERS + [BENCHMARK]))
 
     prices = download_adjusted_close_prices(
@@ -83,7 +92,27 @@ def main():
         starting_index_level=STARTING_INDEX_LEVEL
     )
 
+    performance_summary = build_performance_summary(
+        results=results,
+        annualization_factor=ANNUALIZATION_FACTOR
+    )
+
+    index_results_path = os.path.join(output_folder, "index_results.csv")
+    performance_summary_path = os.path.join(output_folder, "performance_summary.csv")
+
+    results.to_csv(index_results_path)
+    performance_summary.to_csv(performance_summary_path)
+
+    print("\nLatest index results:")
     print(results.tail())
+
+    print("\nPerformance summary:")
+    print(performance_summary)
+
+    print("\nFiles saved:")
+    print(index_results_path)
+    print(performance_summary_path)
+
     print("\nProject run completed successfully.")
 
 
